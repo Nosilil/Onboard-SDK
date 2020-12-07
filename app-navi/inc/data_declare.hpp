@@ -1,4 +1,5 @@
 // by Yuan
+// // this file should be compatible with the OSDK V4.0.1
 
 #ifndef DATA_DECLARE_H_
 #define DATA_DECLARE_H_

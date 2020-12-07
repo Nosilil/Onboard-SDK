@@ -1,4 +1,6 @@
 // data logging cpp by Yuan
+//sl
+// this file should be compatible with the OSDK V4.0.1
 
 #include "data_logging.hpp"
 #include "user_diskio.h"

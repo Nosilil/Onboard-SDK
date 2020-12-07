@@ -39,43 +39,44 @@ monitoredTakeOff()
   ACK::ErrorCode ack;
   int            pkgIndex;
 
-  if (v->getFwVersion() != Version::M100_31)
-  {
-    // Telemetry: Subscribe to flight status and mode at freq 10 Hz
-    pkgIndex                             = 0;
-    int                  freq            = 10;
-    Telemetry::TopicName topicList10Hz[] = {
-      Telemetry::TOPIC_STATUS_FLIGHT, Telemetry::TOPIC_STATUS_DISPLAYMODE
-    };
-    int  numTopic        = sizeof(topicList10Hz) / sizeof(topicList10Hz[0]);
-    bool enableTimestamp = false;
+  //legacy code for M100
+  // if (v->getFwVersion() != Version::M100_31)
+  // {
+  //   // Telemetry: Subscribe to flight status and mode at freq 10 Hz
+  //   pkgIndex                             = 0;
+  //   int                  freq            = 10;
+  //   Telemetry::TopicName topicList10Hz[] = {
+  //     Telemetry::TOPIC_STATUS_FLIGHT, Telemetry::TOPIC_STATUS_DISPLAYMODE
+  //   };
+  //   int  numTopic        = sizeof(topicList10Hz) / sizeof(topicList10Hz[0]);
+  //   bool enableTimestamp = false;
 
-    bool pkgStatus = v->subscribe->initPackageFromTopicList(
-      pkgIndex, numTopic, topicList10Hz, enableTimestamp, freq);
-    if (!(pkgStatus))
-    {
-      return pkgStatus;
-    }
+  //   bool pkgStatus = v->subscribe->initPackageFromTopicList(
+  //     pkgIndex, numTopic, topicList10Hz, enableTimestamp, freq);
+  //   if (!(pkgStatus))
+  //   {
+  //     return pkgStatus;
+  //   }
 
-    //! Start listening to subscribed packages
-    v->subscribe->startPackage(pkgIndex);
-    delay_nms(500);
-    /*ack = waitForACK();
-    if(ACK::getError(ack))
-    {
-            ACK::getErrorCodeMessage(ack, func);
+  //   //! Start listening to subscribed packages
+  //   v->subscribe->startPackage(pkgIndex);
+  //   delay_nms(500);
+  //   /*ack = waitForACK();
+  //   if(ACK::getError(ack))
+  //   {
+  //           ACK::getErrorCodeMessage(ack, func);
 
-            // Cleanup
-            v->subscribe->removePackage(pkgIndex);
-            ack = waitForACK();
-            if(ACK::getError(ack))
-            {
-                    ACK::getErrorCodeMessage(ack, func);
-            }
+  //           // Cleanup
+  //           v->subscribe->removePackage(pkgIndex);
+  //           ack = waitForACK();
+  //           if(ACK::getError(ack))
+  //           {
+  //                   ACK::getErrorCodeMessage(ack, func);
+  //           }
 
-            return false;
-    }*/
-  }
+  //           return false;
+  //   }*/
+  // }
 
   // Start takeoff
   v->control->takeoff();
@@ -111,7 +112,7 @@ monitoredTakeOff()
   {
     //! Two seconds delay
     delay_nms(2000);
-
+    // can comment out the if else statements once the code proves to run on the M300
     if (v->getFwVersion() != Version::M100_31)
     {
       if (v->subscribe->getValue<Telemetry::TOPIC_STATUS_FLIGHT>() ==
@@ -136,7 +137,7 @@ monitoredTakeOff()
       }
 		}
 
-    Platform::instance().getTimeMs(&nextRetryTick);
+    Platform::instance().getTimeMs(&nextRetryTick); // get timestamp
     nextRetryTick += RETRY_TICK;
   } while (nextRetryTick < timeoutTick);
 
@@ -418,7 +419,7 @@ monitoredLanding()
   {
     //! Two seconds delay
     delay_nms(2000);
-
+    // landing for non M100
     if (v->getFwVersion() != Version::M100_31)
     {
       if (v->subscribe->getValue<Telemetry::TOPIC_STATUS_DISPLAYMODE>() !=
@@ -436,6 +437,7 @@ monitoredLanding()
         }
       }
     }
+    // landing for M100
     else
     {
       if(v->broadcast->getStatus().flight ==
@@ -445,17 +447,17 @@ monitoredLanding()
       }
       else
       {
-	Telemetry::GlobalPosition gp;
-	do
-	{
-		delay_nms(2000);
-		gp = v->broadcast->getGlobalPosition();
-	} while (gp.altitude != 0);
+        Telemetry::GlobalPosition gp;
+        do
+        {
+          delay_nms(2000);
+          gp = v->broadcast->getGlobalPosition();
+        } while (gp.altitude != 0);
 
-	if(gp.altitude == 0)
-	{
-		isFinishedLandingState = true;
-	}
+        if(gp.altitude == 0)
+        {
+          isFinishedLandingState = true;
+        }
       }
     }
     Platform::instance().getTimeMs(&nextRetryTick);
